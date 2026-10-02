@@ -25,30 +25,57 @@ class _TelaDeGameplayState extends State<TelaDeGameplay> {
   double posicaoHorizontal = 40;
   double posicaoVertical = 120;
 
+  double pocaoHorizontal = 160;
+  double pocaoVertical = 160;
+
+  late int vida = widget.vida;
+
   int miliss = 200;
 
+  bool pocao = true;
   bool pulando = false;
 
+  // COLISÃO COM A POÇÃO
+  void colisao() {
+    double distanciaX =
+        (posicaoHorizontal - pocaoHorizontal).abs();
+
+    double distanciaY =
+        (posicaoVertical - pocaoVertical).abs();
+
+    if (pocao && distanciaX < 60 && distanciaY < 80) {
+      pocao = false;
+      vida += 50;
+    }
+  }
+
+  // ANDAR PARA A DIREITA
   void andarParaDireita() {
     setState(() {
       posicaoHorizontal += 40;
+      colisao();
     });
   }
 
+  // ANDAR PARA A ESQUERDA
   void andarParaEsquerda() {
     setState(() {
       if (posicaoHorizontal > 10) {
         posicaoHorizontal -= 40;
       }
+
+      colisao();
     });
   }
 
+  // PULAR
   void pular() {
     if (!pulando) {
       pulando = true;
 
       setState(() {
         posicaoVertical = 220;
+        colisao();
       });
 
       Future.delayed(const Duration(milliseconds: 300), () {
@@ -56,12 +83,14 @@ class _TelaDeGameplayState extends State<TelaDeGameplay> {
           setState(() {
             posicaoVertical = 120;
             pulando = false;
+            colisao();
           });
         }
       });
     }
   }
 
+  // CONTROLES DO TECLADO
   void usarTecla(KeyEvent evento) {
     if (evento is KeyDownEvent) {
       if (evento.logicalKey == LogicalKeyboardKey.arrowRight) {
@@ -84,18 +113,15 @@ class _TelaDeGameplayState extends State<TelaDeGameplay> {
       autofocus: true,
       onKeyEvent: (node, evento) {
         usarTecla(evento);
-
         return KeyEventResult.handled;
       },
-
       child: Scaffold(
         body: Stack(
           children: [
-
             // FUNDO
             Positioned.fill(
               child: Image.network(
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmbjeMWU4uWiVuQAs-wGhArJy2l-p8Ap9J1OwLsGgIlA&s=10",
+                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmbjeMWU4uWiVuQAs-wGhArJy2l-p8Ap9J1OwLsGgIlA&s=10',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const SizedBox.shrink();
@@ -116,7 +142,6 @@ class _TelaDeGameplayState extends State<TelaDeGameplay> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     Text(
                       widget.nome,
                       style: const TextStyle(
@@ -129,7 +154,7 @@ class _TelaDeGameplayState extends State<TelaDeGameplay> {
                     const SizedBox(height: 5),
 
                     Text(
-                      "❤️ Vida: ${widget.vida}",
+                      "❤️ Vida: $vida",
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -155,6 +180,20 @@ class _TelaDeGameplayState extends State<TelaDeGameplay> {
                 ),
               ),
             ),
+
+            // POÇÃO
+            if (pocao)
+              Positioned(
+                left: pocaoHorizontal,
+                bottom: pocaoVertical,
+                child: Image.network(
+                  'https://cdn-icons-png.flaticon.com/512/105/105223.png',
+                  height: 60,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
 
             // PERSONAGEM
             AnimatedPositioned(
